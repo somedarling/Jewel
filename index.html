@@ -1,4 +1,4 @@
-<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>きらめきジュエル</title><style>
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>きらめきジュエル</title><meta name="theme-color" content="#e9e7fb"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><link rel="manifest" href="./manifest.webmanifest"><link rel="apple-touch-icon" href="./icons/icon-192.png"><style>
 :root{font-family:system-ui,'Hiragino Kaku Gothic ProN',sans-serif;color:#39465e;background:#f3f5ff}*{box-sizing:border-box}body{margin:0;min-height:100dvh;display:grid;place-items:center;background:radial-gradient(circle at 15% 12%,#fbe7f3,transparent 38%),radial-gradient(circle at 90% 80%,#d6f5ee,transparent 42%),#f3f5ff}.app{width:min(95vw,540px);padding:20px 14px 25px;text-align:center}h1{font-size:clamp(25px,6vw,36px);letter-spacing:.09em;margin:0 0 5px;color:#6775ad}.sub{font-size:12px;margin:0 0 14px;color:#78839a}.panel{display:flex;align-items:center;justify-content:space-between;margin:0 auto 12px;max-width:490px;gap:8px}.score{background:#fff9;border:1px solid white;border-radius:14px;padding:7px 18px;font-weight:700;box-shadow:0 4px 18px #7183ab15}.score span{font-size:20px;color:#6479b1}button{font:inherit;cursor:pointer}.reset{border:1px solid #d4d8f1;background:#fff;border-radius:12px;padding:11px 14px;color:#6675a3;font-size:13px}.board{width:100%;max-width:490px;aspect-ratio:1;margin:auto;display:grid;grid-template-columns:repeat(8,1fr);gap:4px;padding:8px;border-radius:22px;background:#b5c6e2;box-shadow:0 10px 32px #778bb844,inset 0 2px 5px #7186b644;touch-action:none;user-select:none}.cell{border:0;border-radius:10px;background:#edf3ffab;display:grid;place-items:center;padding:2px;aspect-ratio:1;position:relative;transition:background .12s,transform .12s}.cell.selected{background:#fffbe0;outline:3px solid #fff4a8;z-index:1;transform:scale(1.06)}.cell.hint{background:#fff9df}.gem{width:84%;height:84%;filter:drop-shadow(0 3px 2px #3e567c44);position:relative;display:block}.gem:after{content:'';position:absolute;left:19%;top:13%;width:27%;height:18%;border-radius:60%;background:#fff9;transform:rotate(-24deg)}.g0{background:linear-gradient(135deg,#fff1f7,#ff6c9d 48%,#cb4078);clip-path:polygon(50% 0,92% 25%,100% 65%,50% 100%,0 65%,8% 25%)}.g1{background:linear-gradient(135deg,#e5ffff,#50cfc4 48%,#209aab);clip-path:polygon(50% 0,94% 26%,94% 74%,50% 100%,6% 74%,6% 26%)}.g2{background:linear-gradient(135deg,#f5e9ff,#a58bfa 48%,#6657c4);clip-path:polygon(50% 0,90% 14%,100% 70%,50% 100%,0 70%,10% 14%)}.g3{background:linear-gradient(135deg,#fffde4,#ffd56c 48%,#ee9b36);clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)}.g4{background:linear-gradient(135deg,#e6f3ff,#70adf7 48%,#4675d1);clip-path:polygon(50% 0,84% 16%,100% 50%,84% 84%,50% 100%,16% 84%,0 50%,16% 16%)}.g5{background:linear-gradient(135deg,#f2ffe4,#a6d96e 48%,#5eae68);border-radius:50%}.status{min-height:24px;margin:12px 0 0;color:#7583a1;font-size:13px}.foot{font-size:12px;color:#929bb2;margin-top:10px} @media(max-width:400px){.board{gap:3px;padding:6px}.cell{border-radius:7px}.app{padding:12px 9px}}
 
 .cell .special{position:absolute;inset:0;display:grid;place-items:center;font-size:clamp(14px,4vw,27px);font-weight:900;color:#fff;text-shadow:0 2px 4px #38435c,0 0 7px #34466d;pointer-events:none}
@@ -221,6 +221,32 @@ function specialCreation(result,preferred){
  }
  return placements;
 }
+// When a power jewel clears a line/area, recognize 4+ same-color jewels
+// within that cleared region before gravity. This also handles L/T/+ shapes.
+function creationsFromPower(cells,triggered=[]){
+ const removed=expandEffects(cells);
+ const masked=board.map((v,i)=>removed.has(i)?v:null);
+ const found=scan(masked);
+ const patterns=found.runs.filter(r=>r.cells.length>=4);
+ const crosses=[];
+ for(const h of found.runs.filter(r=>r.dir==='row'))
+  for(const v of found.runs.filter(r=>r.dir==='col')){
+   const at=h.cells.find(i=>v.cells.includes(i));
+   if(at!==undefined)crosses.push([...new Set([...h.cells,...v.cells])]);
+  }
+ if(!patterns.length&&!found.squares.length&&!crosses.length)return new Map();
+ const placements=specialCreation(found,[]);
+ const forbidden=new Set(triggered);
+ const safe=new Map();
+ for(const [i,type] of placements){
+  if(!forbidden.has(i)&&board[i]&&!board[i].s){safe.set(i,type);continue}
+  const pattern=type==='random'?found.squares.find(p=>p.includes(i)):
+   crosses.find(p=>p.includes(i))??patterns.find(p=>p.cells.includes(i))?.cells;
+  const alternate=pattern?.find(j=>removed.has(j)&&!forbidden.has(j)&&!board[j]?.s&&!safe.has(j));
+  if(alternate!==undefined)safe.set(alternate,type);
+ }
+ return safe;
+}
 function gravity(){
  for(let x=0;x<N;x++){
   const vals=[];
@@ -265,7 +291,7 @@ async function swap(a,b){
    for(const i of specials)for(const j of specialCells(i,board[i].s))removed.add(j);
   }
   for(const i of result.all)removed.add(i);
-  await clearCells(removed,new Map(),combo);
+  await clearCells(removed,creationsFromPower(removed,specials),combo);
  }else{
   combo++;
   await clearCells(result.all,specialCreation(result,[b,a]),combo);
@@ -288,7 +314,7 @@ async function activate(i){
  busy=true;selected=-1;
  const cells=specialCells(i,board[i].s);
  status.textContent='スペシャルジュエル発動！';
- await clearCells(cells,new Map(),1);
+ await clearCells(cells,creationsFromPower(cells,[i]),1);
  await cascade();
  busy=false;
 }
@@ -325,4 +351,4 @@ document.getElementById('reset').addEventListener('click',()=>{
 });
 board=fresh();render();
 })();
-</script></body></html>
+</script><script>if ('serviceWorker' in navigator) { window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(console.warn)); }</script></body></html>
