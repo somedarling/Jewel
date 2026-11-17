@@ -1,0 +1,212 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>きらめきジュエル</title><style>
+:root{font-family:system-ui,'Hiragino Kaku Gothic ProN',sans-serif;color:#39465e;background:#f3f5ff}*{box-sizing:border-box}body{margin:0;min-height:100dvh;display:grid;place-items:center;background:radial-gradient(circle at 15% 12%,#fbe7f3,transparent 38%),radial-gradient(circle at 90% 80%,#d6f5ee,transparent 42%),#f3f5ff}.app{width:min(95vw,540px);padding:20px 14px 25px;text-align:center}h1{font-size:clamp(25px,6vw,36px);letter-spacing:.09em;margin:0 0 5px;color:#6775ad}.sub{font-size:12px;margin:0 0 14px;color:#78839a}.panel{display:flex;align-items:center;justify-content:space-between;margin:0 auto 12px;max-width:490px;gap:8px}.score{background:#fff9;border:1px solid white;border-radius:14px;padding:7px 18px;font-weight:700;box-shadow:0 4px 18px #7183ab15}.score span{font-size:20px;color:#6479b1}button{font:inherit;cursor:pointer}.reset{border:1px solid #d4d8f1;background:#fff;border-radius:12px;padding:11px 14px;color:#6675a3;font-size:13px}.board{width:100%;max-width:490px;aspect-ratio:1;margin:auto;display:grid;grid-template-columns:repeat(8,1fr);gap:4px;padding:8px;border-radius:22px;background:#b5c6e2;box-shadow:0 10px 32px #778bb844,inset 0 2px 5px #7186b644;touch-action:pan-y;user-select:none}.cell{border:0;border-radius:10px;background:#edf3ffab;display:grid;place-items:center;padding:2px;aspect-ratio:1;position:relative;transition:background .12s,transform .12s}.cell.selected{background:#fffbe0;outline:3px solid #fff4a8;z-index:1;transform:scale(1.06)}.cell.hint{background:#fff9df}.gem{width:84%;height:84%;filter:drop-shadow(0 3px 2px #3e567c44);position:relative;display:block}.gem:after{content:'';position:absolute;left:19%;top:13%;width:27%;height:18%;border-radius:60%;background:#fff9;transform:rotate(-24deg)}.g0{background:linear-gradient(135deg,#fff1f7,#ff6c9d 48%,#cb4078);clip-path:polygon(50% 0,92% 25%,100% 65%,50% 100%,0 65%,8% 25%)}.g1{background:linear-gradient(135deg,#e5ffff,#50cfc4 48%,#209aab);clip-path:polygon(50% 0,94% 26%,94% 74%,50% 100%,6% 74%,6% 26%)}.g2{background:linear-gradient(135deg,#f5e9ff,#a58bfa 48%,#6657c4);clip-path:polygon(50% 0,90% 14%,100% 70%,50% 100%,0 70%,10% 14%)}.g3{background:linear-gradient(135deg,#fffde4,#ffd56c 48%,#ee9b36);clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)}.g4{background:linear-gradient(135deg,#e6f3ff,#70adf7 48%,#4675d1);clip-path:polygon(50% 0,84% 16%,100% 50%,84% 84%,50% 100%,16% 84%,0 50%,16% 16%)}.g5{background:linear-gradient(135deg,#f2ffe4,#a6d96e 48%,#5eae68);border-radius:50%}.status{min-height:24px;margin:12px 0 0;color:#7583a1;font-size:13px}.foot{font-size:12px;color:#929bb2;margin-top:10px} @media(max-width:400px){.board{gap:3px;padding:6px}.cell{border-radius:7px}.app{padding:12px 9px}}
+
+.cell .special{position:absolute;inset:0;display:grid;place-items:center;font-size:clamp(14px,4vw,27px);font-weight:900;color:#fff;text-shadow:0 2px 4px #38435c,0 0 7px #34466d;pointer-events:none}
+.cell .gem.power{filter:drop-shadow(0 0 6px #fff) drop-shadow(0 3px 3px #3e567c66)}
+.legend{max-width:490px;margin:12px auto 0;display:flex;flex-wrap:wrap;justify-content:center;gap:7px;font-size:11px;color:#6675a3}
+.legend span{background:#ffffffb8;border-radius:10px;padding:4px 7px}
+</style></head><body><main class="app"><h1>✧ きらめきジュエル ✧</h1><p class="sub">好きなだけ、宝石をそろえよう</p><div class="panel"><div class="score">SCORE <span id="score">0</span></div><button class="reset" id="reset">最初から</button></div><div class="board" id="board" role="grid" aria-label="宝石のゲーム盤"></div><p class="status" id="status" aria-live="polite">隣り合う宝石を交換して3つそろえてね</p><div class="legend"><span>↔ / ↕ 4個：1列消去</span><span>✦ 四角4個：ランダム1個消去</span><span>✹ 5個：周囲を爆破</span></div><p class="foot">時間制限なし・ゲームオーバーなし・スマホ対応</p></main><script>
+(()=>{
+'use strict';
+const N=8,C=6, boardEl=document.getElementById('board'),scoreEl=document.getElementById('score'),status=document.getElementById('status');
+const names=['ピンク','ミント','紫','黄色','青','緑'];
+let board=[],selected=-1,busy=false,score=0,pointer=null;
+const rnd=()=>Math.floor(Math.random()*C), gem=(c,s=null)=>({c,s}), wait=ms=>new Promise(r=>setTimeout(r,ms));
+const same=(a,b)=>a!==null&&b!==null&&a.c===b.c;
+const row=i=>Math.floor(i/N),col=i=>i%N;
+function scan(b){
+ const runs=[],squares=[],all=new Set();
+ for(let y=0;y<N;y++)for(let x=0;x<N;){
+  let end=x+1;while(end<N&&same(b[y*N+x],b[y*N+end]))end++;
+  if(end-x>=3){const cells=Array.from({length:end-x},(_,k)=>y*N+x+k);runs.push({cells,dir:'row'});cells.forEach(i=>all.add(i))}
+  x=end;
+ }
+ for(let x=0;x<N;x++)for(let y=0;y<N;){
+  let end=y+1;while(end<N&&same(b[y*N+x],b[end*N+x]))end++;
+  if(end-y>=3){const cells=Array.from({length:end-y},(_,k)=>(y+k)*N+x);runs.push({cells,dir:'col'});cells.forEach(i=>all.add(i))}
+  y=end;
+ }
+ for(let y=0;y<N-1;y++)for(let x=0;x<N-1;x++){
+  const i=y*N+x, cells=[i,i+1,i+N,i+N+1];
+  if(cells.every(k=>same(b[i],b[k]))){squares.push(cells);cells.forEach(k=>all.add(k))}
+ }
+ return {runs,squares,all};
+}
+function adjacent(i,j){return Math.abs(i-j)===N||(row(i)===row(j)&&Math.abs(i-j)===1)}
+function canMove(b){
+ for(let i=0;i<N*N;i++){
+  if(b[i]?.s)return true;
+  for(const j of [col(i)<N-1?i+1:-1,i+N<N*N?i+N:-1]){
+   if(j<0)continue;
+   [b[i],b[j]]=[b[j],b[i]];
+   const ok=scan(b).all.size>0;
+   [b[i],b[j]]=[b[j],b[i]];
+   if(ok)return true;
+  }
+ }
+ return false;
+}
+function fresh(){
+ let b;
+ do{
+  b=Array(N*N).fill(null);
+  for(let i=0;i<b.length;i++){
+   let c;
+   do{c=rnd()}while((col(i)>=2&&b[i-1]?.c===c&&b[i-2]?.c===c)||(i>=2*N&&b[i-N]?.c===c&&b[i-2*N]?.c===c));
+   b[i]=gem(c);
+  }
+ }while(!canMove(b));
+ return b;
+}
+function render(){
+ boardEl.innerHTML='';
+ board.forEach((v,i)=>{
+  const cell=document.createElement('button');
+  cell.type='button';cell.className='cell'+(i===selected?' selected':'');
+  cell.setAttribute('role','gridcell');
+  cell.setAttribute('aria-label',`${row(i)+1}行${col(i)+1}列、${v?names[v.c]+'の宝石'+(v.s?'・特殊ジュエル':''):'空'}`);
+  if(v){
+   const g=document.createElement('span');g.className='gem g'+v.c+(v.s?' power':'');cell.append(g);
+   if(v.s){
+    const mark=document.createElement('span');mark.className='special';
+    mark.textContent=({row:'↔',col:'↕',random:'✦',bomb:'✹'})[v.s];
+    cell.append(mark);
+   }
+  }
+  cell.addEventListener('click',()=>pick(i));
+  cell.addEventListener('pointerdown',e=>{pointer={i,x:e.clientX,y:e.clientY};});
+  cell.addEventListener('pointerup',e=>{
+   if(!pointer||pointer.i!==i)return;
+   const dx=e.clientX-pointer.x,dy=e.clientY-pointer.y;pointer=null;
+   if(Math.max(Math.abs(dx),Math.abs(dy))<18)return;
+   const j=Math.abs(dx)>Math.abs(dy)?i+(dx>0?1:-1):i+(dy>0?N:-N);
+   if(j<0||j>=N*N||!adjacent(i,j))return;
+   selected=-1;swap(i,j);
+  });
+  boardEl.append(cell);
+ });
+}
+function pick(i){
+ if(busy)return;
+ if(selected<0){selected=i;render();return}
+ if(i===selected){selected=-1;render();return}
+ if(adjacent(selected,i)){const a=selected;selected=-1;swap(a,i)}
+ else{selected=i;render()}
+}
+function specialCells(i,s){
+ const result=new Set();
+ if(s==='row')for(let x=0;x<N;x++)result.add(row(i)*N+x);
+ if(s==='col')for(let y=0;y<N;y++)result.add(y*N+col(i));
+ if(s==='bomb')for(let y=Math.max(0,row(i)-1);y<=Math.min(N-1,row(i)+1);y++)
+  for(let x=Math.max(0,col(i)-1);x<=Math.min(N-1,col(i)+1);x++)result.add(y*N+x);
+ if(s==='random'){
+  result.add(i);
+  const candidates=board.map((v,k)=>v&&k!==i?k:-1).filter(k=>k>=0);
+  if(candidates.length)result.add(candidates[Math.floor(Math.random()*candidates.length)]);
+ }
+ return result;
+}
+function expandEffects(initial,protectedCell=-1){
+ const removed=new Set(initial),queue=[...removed],activated=new Set();
+ while(queue.length){
+  const i=queue.shift(),v=board[i];
+  if(!v?.s||activated.has(i)||i===protectedCell)continue;
+  activated.add(i);
+  for(const j of specialCells(i,v.s)){
+   if(j===protectedCell)continue;
+   if(!removed.has(j)){removed.add(j);queue.push(j)}
+  }
+ }
+ return removed;
+}
+function specialCreation(result,preferred){
+ const out=new Map();
+ // Priority: 5 in a line > square of 4 > line of 4.
+ const choose=(cells)=>cells.find(i=>preferred.includes(i))??cells[Math.floor(cells.length/2)];
+ for(const run of result.runs.filter(r=>r.cells.length>=4)){
+  const type=run.cells.length>=5?'bomb':run.dir;
+  const at=choose(run.cells);
+  const old=out.get(at);
+  if(!old||type==='bomb')out.set(at,type);
+ }
+ for(const cells of result.squares){
+  const at=choose(cells);
+  if(out.get(at)!=='bomb')out.set(at,'random');
+ }
+ // If special patterns overlap, retain the highest-priority one.
+ const rank={row:1,col:1,random:2,bomb:3};
+ const proposals=[];
+ for(const run of result.runs.filter(r=>r.cells.length>=4))proposals.push({cells:run.cells,type:run.cells.length>=5?'bomb':run.dir});
+ for(const cells of result.squares)proposals.push({cells,type:'random'});
+ proposals.sort((a,b)=>rank[b.type]-rank[a.type]);
+ const reserved=new Set(),placements=new Map();
+ for(const p of proposals){
+  if(p.cells.some(i=>reserved.has(i)))continue;
+  const at=choose(p.cells);
+  placements.set(at,p.type);
+  p.cells.forEach(i=>reserved.add(i));
+ }
+ return placements;
+}
+function gravity(){
+ for(let x=0;x<N;x++){
+  const vals=[];
+  for(let y=N-1;y>=0;y--)if(board[y*N+x])vals.push(board[y*N+x]);
+  for(let y=N-1;y>=0;y--)board[y*N+x]=vals[N-1-y]??gem(rnd());
+ }
+}
+async function clearCells(cells,placements=new Map(),combo=1){
+ const protectedPositions=new Set(placements.keys());
+ const expanded=expandEffects([...cells].filter(i=>!protectedPositions.has(i)));
+ for(const i of protectedPositions)expanded.delete(i);
+ const count=expanded.size;
+ score+=count*10*combo;
+ scoreEl.textContent=score;
+ for(const i of expanded)board[i]=null;
+ for(const [i,type] of placements)if(board[i])board[i].s=type;
+ status.textContent=placements.size?`${count}個消去！ 特殊ジュエル誕生 ✨`:`${count}個消去！ ${combo>1?combo+'連鎖！':''}`;
+ render();await wait(240);gravity();render();await wait(180);
+}
+async function swap(a,b){
+ if(busy||!adjacent(a,b))return;
+ busy=true;selected=-1;
+ [board[a],board[b]]=[board[b],board[a]];
+ render();await wait(140);
+ let result=scan(board);
+ const specials=[a,b].filter(i=>board[i]?.s);
+ if(!result.all.size&&!specials.length){
+  [board[a],board[b]]=[board[b],board[a]];
+  status.textContent='3つそろわない交換は戻るよ';
+  render();busy=false;return;
+ }
+ let combo=0;
+ if(specials.length){
+  combo++;
+  const removed=new Set();
+  for(const i of specials)for(const j of specialCells(i,board[i].s))removed.add(j);
+  for(const i of result.all)removed.add(i);
+  await clearCells(removed,new Map(),combo);
+ }else{
+  combo++;
+  await clearCells(result.all,specialCreation(result,[b,a]),combo);
+ }
+ while(combo<100){
+  result=scan(board);
+  if(!result.all.size)break;
+  combo++;
+  // Falling matches can create specials as well.
+  await clearCells(result.all,specialCreation(result,[]),combo);
+ }
+ if(!canMove(board)){
+  board=fresh();status.textContent='手詰まり！ 宝石をシャッフルしたよ';render();
+ }
+ busy=false;
+}
+document.getElementById('reset').addEventListener('click',()=>{
+ if(busy)return;
+ board=fresh();score=0;selected=-1;scoreEl.textContent='0';
+ status.textContent='隣り合う宝石を交換して3つそろえてね';render();
+});
+board=fresh();render();
+})();
+</script></body></html>
