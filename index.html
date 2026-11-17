@@ -1,16 +1,48 @@
 <!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>きらめきジュエル</title><style>
-:root{font-family:system-ui,'Hiragino Kaku Gothic ProN',sans-serif;color:#39465e;background:#f3f5ff}*{box-sizing:border-box}body{margin:0;min-height:100dvh;display:grid;place-items:center;background:radial-gradient(circle at 15% 12%,#fbe7f3,transparent 38%),radial-gradient(circle at 90% 80%,#d6f5ee,transparent 42%),#f3f5ff}.app{width:min(95vw,540px);padding:20px 14px 25px;text-align:center}h1{font-size:clamp(25px,6vw,36px);letter-spacing:.09em;margin:0 0 5px;color:#6775ad}.sub{font-size:12px;margin:0 0 14px;color:#78839a}.panel{display:flex;align-items:center;justify-content:space-between;margin:0 auto 12px;max-width:490px;gap:8px}.score{background:#fff9;border:1px solid white;border-radius:14px;padding:7px 18px;font-weight:700;box-shadow:0 4px 18px #7183ab15}.score span{font-size:20px;color:#6479b1}button{font:inherit;cursor:pointer}.reset{border:1px solid #d4d8f1;background:#fff;border-radius:12px;padding:11px 14px;color:#6675a3;font-size:13px}.board{width:100%;max-width:490px;aspect-ratio:1;margin:auto;display:grid;grid-template-columns:repeat(8,1fr);gap:4px;padding:8px;border-radius:22px;background:#b5c6e2;box-shadow:0 10px 32px #778bb844,inset 0 2px 5px #7186b644;touch-action:pan-y;user-select:none}.cell{border:0;border-radius:10px;background:#edf3ffab;display:grid;place-items:center;padding:2px;aspect-ratio:1;position:relative;transition:background .12s,transform .12s}.cell.selected{background:#fffbe0;outline:3px solid #fff4a8;z-index:1;transform:scale(1.06)}.cell.hint{background:#fff9df}.gem{width:84%;height:84%;filter:drop-shadow(0 3px 2px #3e567c44);position:relative;display:block}.gem:after{content:'';position:absolute;left:19%;top:13%;width:27%;height:18%;border-radius:60%;background:#fff9;transform:rotate(-24deg)}.g0{background:linear-gradient(135deg,#fff1f7,#ff6c9d 48%,#cb4078);clip-path:polygon(50% 0,92% 25%,100% 65%,50% 100%,0 65%,8% 25%)}.g1{background:linear-gradient(135deg,#e5ffff,#50cfc4 48%,#209aab);clip-path:polygon(50% 0,94% 26%,94% 74%,50% 100%,6% 74%,6% 26%)}.g2{background:linear-gradient(135deg,#f5e9ff,#a58bfa 48%,#6657c4);clip-path:polygon(50% 0,90% 14%,100% 70%,50% 100%,0 70%,10% 14%)}.g3{background:linear-gradient(135deg,#fffde4,#ffd56c 48%,#ee9b36);clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)}.g4{background:linear-gradient(135deg,#e6f3ff,#70adf7 48%,#4675d1);clip-path:polygon(50% 0,84% 16%,100% 50%,84% 84%,50% 100%,16% 84%,0 50%,16% 16%)}.g5{background:linear-gradient(135deg,#f2ffe4,#a6d96e 48%,#5eae68);border-radius:50%}.status{min-height:24px;margin:12px 0 0;color:#7583a1;font-size:13px}.foot{font-size:12px;color:#929bb2;margin-top:10px} @media(max-width:400px){.board{gap:3px;padding:6px}.cell{border-radius:7px}.app{padding:12px 9px}}
+:root{font-family:system-ui,'Hiragino Kaku Gothic ProN',sans-serif;color:#39465e;background:#f3f5ff}*{box-sizing:border-box}body{margin:0;min-height:100dvh;display:grid;place-items:center;background:radial-gradient(circle at 15% 12%,#fbe7f3,transparent 38%),radial-gradient(circle at 90% 80%,#d6f5ee,transparent 42%),#f3f5ff}.app{width:min(95vw,540px);padding:20px 14px 25px;text-align:center}h1{font-size:clamp(25px,6vw,36px);letter-spacing:.09em;margin:0 0 5px;color:#6775ad}.sub{font-size:12px;margin:0 0 14px;color:#78839a}.panel{display:flex;align-items:center;justify-content:space-between;margin:0 auto 12px;max-width:490px;gap:8px}.score{background:#fff9;border:1px solid white;border-radius:14px;padding:7px 18px;font-weight:700;box-shadow:0 4px 18px #7183ab15}.score span{font-size:20px;color:#6479b1}button{font:inherit;cursor:pointer}.reset{border:1px solid #d4d8f1;background:#fff;border-radius:12px;padding:11px 14px;color:#6675a3;font-size:13px}.board{width:100%;max-width:490px;aspect-ratio:1;margin:auto;display:grid;grid-template-columns:repeat(8,1fr);gap:4px;padding:8px;border-radius:22px;background:#b5c6e2;box-shadow:0 10px 32px #778bb844,inset 0 2px 5px #7186b644;touch-action:none;user-select:none}.cell{border:0;border-radius:10px;background:#edf3ffab;display:grid;place-items:center;padding:2px;aspect-ratio:1;position:relative;transition:background .12s,transform .12s}.cell.selected{background:#fffbe0;outline:3px solid #fff4a8;z-index:1;transform:scale(1.06)}.cell.hint{background:#fff9df}.gem{width:84%;height:84%;filter:drop-shadow(0 3px 2px #3e567c44);position:relative;display:block}.gem:after{content:'';position:absolute;left:19%;top:13%;width:27%;height:18%;border-radius:60%;background:#fff9;transform:rotate(-24deg)}.g0{background:linear-gradient(135deg,#fff1f7,#ff6c9d 48%,#cb4078);clip-path:polygon(50% 0,92% 25%,100% 65%,50% 100%,0 65%,8% 25%)}.g1{background:linear-gradient(135deg,#e5ffff,#50cfc4 48%,#209aab);clip-path:polygon(50% 0,94% 26%,94% 74%,50% 100%,6% 74%,6% 26%)}.g2{background:linear-gradient(135deg,#f5e9ff,#a58bfa 48%,#6657c4);clip-path:polygon(50% 0,90% 14%,100% 70%,50% 100%,0 70%,10% 14%)}.g3{background:linear-gradient(135deg,#fffde4,#ffd56c 48%,#ee9b36);clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)}.g4{background:linear-gradient(135deg,#e6f3ff,#70adf7 48%,#4675d1);clip-path:polygon(50% 0,84% 16%,100% 50%,84% 84%,50% 100%,16% 84%,0 50%,16% 16%)}.g5{background:linear-gradient(135deg,#f2ffe4,#a6d96e 48%,#5eae68);border-radius:50%}.status{min-height:24px;margin:12px 0 0;color:#7583a1;font-size:13px}.foot{font-size:12px;color:#929bb2;margin-top:10px} @media(max-width:400px){.board{gap:3px;padding:6px}.cell{border-radius:7px}.app{padding:12px 9px}}
 
 .cell .special{position:absolute;inset:0;display:grid;place-items:center;font-size:clamp(14px,4vw,27px);font-weight:900;color:#fff;text-shadow:0 2px 4px #38435c,0 0 7px #34466d;pointer-events:none}
 .cell .gem.power{filter:drop-shadow(0 0 6px #fff) drop-shadow(0 3px 3px #3e567c66)}
 .legend{max-width:490px;margin:12px auto 0;display:flex;flex-wrap:wrap;justify-content:center;gap:7px;font-size:11px;color:#6675a3}
 .legend span{background:#ffffffb8;border-radius:10px;padding:4px 7px}
-</style></head><body><main class="app"><h1>✧ きらめきジュエル ✧</h1><p class="sub">好きなだけ、宝石をそろえよう</p><div class="panel"><div class="score">SCORE <span id="score">0</span></div><button class="reset" id="reset">最初から</button></div><div class="board" id="board" role="grid" aria-label="宝石のゲーム盤"></div><p class="status" id="status" aria-live="polite">隣り合う宝石を交換して3つそろえてね</p><div class="legend"><span>↔ / ↕ 4個：1列消去</span><span>✦ 四角4個：ランダム1個消去</span><span>✹ 5個：周囲を爆破</span></div><p class="foot">時間制限なし・ゲームオーバーなし・スマホ対応</p></main><script>
+
+html,body{height:100%;overscroll-behavior:none}
+body{height:100dvh;min-height:0;overflow:hidden}
+.app{height:100dvh;max-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:8px 10px;gap:clamp(3px,1vh,10px)}
+.app h1{font-size:clamp(18px,4.4vmin,32px);margin:0}
+.app .sub,.app .panel,.app .foot,.app .legend{margin-top:0;margin-bottom:0}
+.app .panel{width:100%;max-width:min(490px,calc(100dvh - 205px))}
+.board{width:min(100%,490px,calc(100dvh - 205px));max-width:none;flex:0 0 auto;gap:clamp(2px,.6vmin,4px);padding:clamp(4px,1vmin,8px)}
+.cell{touch-action:none}
+.cell .special{font-size:unset}
+.cell .special svg{width:72%;height:72%;filter:drop-shadow(0 2px 3px #27376388)}
+.cell .gem.power{filter:drop-shadow(0 0 5px white) drop-shadow(0 0 7px #fff)}
+@media(max-height:560px){.app .sub,.app .foot{display:none}.app{gap:3px}.board{width:min(90vw,calc(100dvh - 115px))}}
+
+.word-option{font-size:12px;color:#6775ad;display:flex;align-items:center;gap:6px;justify-content:center;cursor:pointer}
+.word-option input{accent-color:#8a8fce}
+.wordpop{height:clamp(19px,3.5vh,28px);font-size:clamp(14px,3.8vmin,22px);font-weight:800;letter-spacing:.08em;color:#a86caa;text-shadow:0 1px #fff;opacity:0;transition:opacity .2s}
+.wordpop.show{opacity:1;animation:wordbounce .45s ease-out}
+@keyframes wordbounce{0%{transform:scale(.6) rotate(-5deg)}65%{transform:scale(1.12) rotate(2deg)}100%{transform:scale(1)}}
+@media(max-height:600px){.app .sub,.app .foot,.app .legend{display:none}.board{width:min(100%,490px,calc(100dvh - 150px))}}
+</style></head><body><main class="app"><h1>✧ きらめきジュエル ✧</h1><p class="sub">好きなだけ、宝石をそろえよう</p><div class="panel"><div class="score">SCORE <span id="score">0</span></div><button class="reset" id="reset">最初から</button></div><label class="word-option"><input id="words" type="checkbox" checked> どうでもいい言葉を表示</label><div class="board" id="board" role="grid" aria-label="宝石のゲーム盤"></div><div id="wordpop" class="wordpop" aria-live="polite"></div><p class="status" id="status" aria-live="polite">隣り合う宝石を交換して3つそろえてね</p><div class="legend"><span>矢印の紋章：1列消去</span><span>星の紋章：ランダム1個消去</span><span>太陽の紋章：周囲を爆破</span></div><p class="foot">時間制限なし・ゲームオーバーなし・スマホ対応</p></main><script>
 (()=>{
 'use strict';
 const N=8,C=6, boardEl=document.getElementById('board'),scoreEl=document.getElementById('score'),status=document.getElementById('status');
 const names=['ピンク','ミント','紫','黄色','青','緑'];
 let board=[],selected=-1,busy=false,score=0,pointer=null;
+const wordToggle=document.getElementById('words'),wordpop=document.getElementById('wordpop');
+const words=['二度寝！','月見そば！','湿布！','輪ゴム！','押し入れ！','ほうじ茶！','すべり台！','夕刊！','たまご焼き！','鳩時計！','輪切り！','お昼寝！','非常口！','草餅！','毛玉！','洗濯ばさみ！','縁側！','紙袋！','三色団子！','たんぽぽ！','のり弁！','靴べら！','湯たんぽ！','冷やし中華！','みかん箱！','ハンガー！','深呼吸！','回覧板！','さつまいも！','つまようじ！','寝ぐせ！','きつねうどん！','置き時計！','腹巻き！','日なたぼっこ！','麦茶！','長靴！','うたた寝！','味付け海苔！','五目ごはん！'];
+let lastWord=-1;
+function showWord(){
+ if(!wordToggle.checked)return;
+ let k=Math.floor(Math.random()*words.length);
+ if(k===lastWord)k=(k+1)%words.length;
+ lastWord=k;wordpop.textContent=words[k];
+ wordpop.classList.remove('show');void wordpop.offsetWidth;wordpop.classList.add('show');
+}
+wordToggle.addEventListener('change',()=>{if(!wordToggle.checked){wordpop.textContent='';wordpop.classList.remove('show')}});
+
 const rnd=()=>Math.floor(Math.random()*C), gem=(c,s=null)=>({c,s}), wait=ms=>new Promise(r=>setTimeout(r,ms));
 const same=(a,b)=>a!==null&&b!==null&&a.c===b.c;
 const row=i=>Math.floor(i/N),col=i=>i%N;
@@ -58,6 +90,12 @@ function fresh(){
  }while(!canMove(b));
  return b;
 }
+const icons={
+ row:`<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="39" fill="#ffffff55" stroke="#fff7cf" stroke-width="5"/><path d="M13 50H87M13 50L27 37M13 50L27 63M87 50L73 37M87 50L73 63" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><path d="M50 31L65 50L50 69L35 50Z" fill="#fff8ca" stroke="#fff" stroke-width="3"/></svg>`,
+ col:`<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="39" fill="#ffffff55" stroke="#fff7cf" stroke-width="5"/><path d="M50 13V87M50 13L37 27M50 13L63 27M50 87L37 73M50 87L63 73" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><path d="M50 31L65 50L50 69L35 50Z" fill="#fff8ca" stroke="#fff" stroke-width="3"/></svg>`,
+ random:`<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="39" fill="#ffffff55" stroke="#fff7cf" stroke-width="5"/><path d="M50 15L58 41L84 50L58 58L50 85L41 58L16 50L41 41Z" fill="#fff7c6" stroke="white" stroke-width="4"/><circle cx="24" cy="24" r="5" fill="white"/><circle cx="76" cy="74" r="4" fill="white"/></svg>`,
+ bomb:`<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="39" fill="#ffffff55" stroke="#fff7cf" stroke-width="5"/><path d="M50 8L59 31L79 18L70 41L94 50L70 59L79 82L59 69L50 92L41 69L21 82L30 59L6 50L30 41L21 18L41 31Z" fill="#ffda88" stroke="#fff" stroke-width="4"/><circle cx="50" cy="50" r="14" fill="#fff"/></svg>`
+};
 function render(){
  boardEl.innerHTML='';
  board.forEach((v,i)=>{
@@ -69,25 +107,17 @@ function render(){
    const g=document.createElement('span');g.className='gem g'+v.c+(v.s?' power':'');cell.append(g);
    if(v.s){
     const mark=document.createElement('span');mark.className='special';
-    mark.textContent=({row:'↔',col:'↕',random:'✦',bomb:'✹'})[v.s];
+    mark.innerHTML=icons[v.s];
     cell.append(mark);
    }
   }
-  cell.addEventListener('click',()=>pick(i));
-  cell.addEventListener('pointerdown',e=>{pointer={i,x:e.clientX,y:e.clientY};});
-  cell.addEventListener('pointerup',e=>{
-   if(!pointer||pointer.i!==i)return;
-   const dx=e.clientX-pointer.x,dy=e.clientY-pointer.y;pointer=null;
-   if(Math.max(Math.abs(dx),Math.abs(dy))<18)return;
-   const j=Math.abs(dx)>Math.abs(dy)?i+(dx>0?1:-1):i+(dy>0?N:-N);
-   if(j<0||j>=N*N||!adjacent(i,j))return;
-   selected=-1;swap(i,j);
-  });
+
   boardEl.append(cell);
  });
 }
 function pick(i){
  if(busy)return;
+ if(board[i]?.s){selected=-1;activate(i);return}
  if(selected<0){selected=i;render();return}
  if(i===selected){selected=-1;render();return}
  if(adjacent(selected,i)){const a=selected;selected=-1;swap(a,i)}
@@ -105,6 +135,41 @@ function specialCells(i,s){
   if(candidates.length)result.add(candidates[Math.floor(Math.random()*candidates.length)]);
  }
  return result;
+}
+function comboCells(a,b,sa,sb){
+ const out=new Set([a,b]);
+ const types=[sa,sb];
+ const lineCount=types.filter(t=>t==='row'||t==='col').length;
+ const bombCount=types.filter(t=>t==='bomb').length;
+ const randomCount=types.filter(t=>t==='random').length;
+ const add=(i)=>{if(i>=0&&i<N*N)out.add(i)};
+ const fullRow=y=>{for(let x=0;x<N;x++)add(y*N+x)};
+ const fullCol=x=>{for(let y=0;y<N;y++)add(y*N+x)};
+ const area=(cy,cx,r)=>{for(let y=Math.max(0,cy-r);y<=Math.min(N-1,cy+r);y++)for(let x=Math.max(0,cx-r);x<=Math.min(N-1,cx+r);x++)add(y*N+x)};
+ if(randomCount===2){
+  // Two stars: clear the entire board.
+  for(let i=0;i<N*N;i++)add(i);
+ }else if(randomCount===1){
+  const other=sa==='random'?sb:sa;
+  if(other==='bomb'){
+   // Star + bomb: five randomly positioned 3x3 explosions.
+   for(let n=0;n<5;n++){const i=Math.floor(Math.random()*N*N);area(row(i),col(i),1)}
+  }else{
+   // Star + line: three random full rows and three columns.
+   for(let n=0;n<3;n++){fullRow(Math.floor(Math.random()*N));fullCol(Math.floor(Math.random()*N))}
+  }
+ }else if(bombCount===2){
+  // Two bombs: large 5x5 area around the exchange.
+  area(row(a),col(a),2);area(row(b),col(b),2);
+ }else if(bombCount===1&&lineCount===1){
+  // Bomb + line: three adjacent rows AND columns.
+  const i=sa==='bomb'?a:b;
+  for(let d=-1;d<=1;d++){if(row(i)+d>=0&&row(i)+d<N)fullRow(row(i)+d);if(col(i)+d>=0&&col(i)+d<N)fullCol(col(i)+d)}
+ }else if(lineCount===2){
+  // Two lines: cross on both exchanged positions, creating a broad cross.
+  fullRow(row(a));fullCol(col(a));fullRow(row(b));fullCol(col(b));
+ }
+ return out;
 }
 function expandEffects(initial,protectedCell=-1){
  const removed=new Set(initial),queue=[...removed],activated=new Set();
@@ -156,6 +221,7 @@ function gravity(){
  }
 }
 async function clearCells(cells,placements=new Map(),combo=1){
+ if(placements.size)showWord();
  const protectedPositions=new Set(placements.keys());
  const expanded=expandEffects([...cells].filter(i=>!protectedPositions.has(i)));
  for(const i of protectedPositions)expanded.delete(i);
@@ -174,6 +240,7 @@ async function swap(a,b){
  render();await wait(140);
  let result=scan(board);
  const specials=[a,b].filter(i=>board[i]?.s);
+ const bothSpecial=board[a]?.s&&board[b]?.s;
  if(!result.all.size&&!specials.length){
   [board[a],board[b]]=[board[b],board[a]];
   status.textContent='3つそろわない交換は戻るよ';
@@ -183,7 +250,12 @@ async function swap(a,b){
  if(specials.length){
   combo++;
   const removed=new Set();
-  for(const i of specials)for(const j of specialCells(i,board[i].s))removed.add(j);
+  if(bothSpecial){
+   for(const i of comboCells(a,b,board[a].s,board[b].s))removed.add(i);
+   status.textContent='スペシャルコンボ！';
+  }else{
+   for(const i of specials)for(const j of specialCells(i,board[i].s))removed.add(j);
+  }
   for(const i of result.all)removed.add(i);
   await clearCells(removed,new Map(),combo);
  }else{
@@ -202,9 +274,45 @@ async function swap(a,b){
  }
  busy=false;
 }
+
+async function activate(i){
+ if(busy||!board[i]?.s)return;
+ busy=true;selected=-1;
+ const cells=specialCells(i,board[i].s);
+ status.textContent='スペシャルジュエル発動！';
+ await clearCells(cells,new Map(),1);
+ await cascade();
+ busy=false;
+}
+async function cascade(){
+ let combo=1;
+ while(combo<100){
+  const result=scan(board);
+  if(!result.all.size)break;
+  combo++;
+  await clearCells(result.all,specialCreation(result,[]),combo);
+ }
+ if(!canMove(board)){board=fresh();status.textContent='手詰まり！ 宝石をシャッフルしたよ';render();}
+}
+boardEl.addEventListener('pointerdown',e=>{
+ const cell=e.target.closest('.cell');
+ if(!cell||busy)return;
+ pointer={i:Array.prototype.indexOf.call(boardEl.children,cell),x:e.clientX,y:e.clientY,id:e.pointerId};
+ boardEl.setPointerCapture?.(e.pointerId);
+});
+boardEl.addEventListener('pointerup',e=>{
+ if(!pointer||pointer.id!==e.pointerId)return;
+ const {i,x,y}=pointer;pointer=null;
+ const dx=e.clientX-x,dy=e.clientY-y;
+ if(Math.max(Math.abs(dx),Math.abs(dy))<17){pick(i);return;}
+ const j=Math.abs(dx)>Math.abs(dy)?i+(dx>0?1:-1):i+(dy>0?N:-N);
+ if(j>=0&&j<N*N&&adjacent(i,j)){selected=-1;swap(i,j);}
+});
+boardEl.addEventListener('pointercancel',()=>{pointer=null});
+
 document.getElementById('reset').addEventListener('click',()=>{
  if(busy)return;
- board=fresh();score=0;selected=-1;scoreEl.textContent='0';
+ board=fresh();score=0;selected=-1;scoreEl.textContent='0';wordpop.textContent='';wordpop.classList.remove('show');
  status.textContent='隣り合う宝石を交換して3つそろえてね';render();
 });
 board=fresh();render();
