@@ -25,7 +25,7 @@ body{height:100dvh;min-height:0;overflow:hidden}
 .wordpop.show{opacity:1;animation:wordbounce .45s ease-out}
 @keyframes wordbounce{0%{transform:scale(.6) rotate(-5deg)}65%{transform:scale(1.12) rotate(2deg)}100%{transform:scale(1)}}
 @media(max-height:600px){.app .sub,.app .foot,.app .legend{display:none}.board{width:min(100%,490px,calc(100dvh - 150px))}}
-</style></head><body><main class="app"><h1>✧ きらめきジュエル ✧</h1><p class="sub">好きなだけ、宝石をそろえよう</p><div class="panel"><div class="score">SCORE <span id="score">0</span></div><button class="reset" id="reset">最初から</button></div><label class="word-option"><input id="words" type="checkbox" checked> どうでもいい言葉を表示</label><div class="board" id="board" role="grid" aria-label="宝石のゲーム盤"></div><div id="wordpop" class="wordpop" aria-live="polite"></div><p class="status" id="status" aria-live="polite">隣り合う宝石を交換して3つそろえてね</p><div class="legend"><span>矢印の紋章：1列消去</span><span>星の紋章：ランダム1個消去</span><span>太陽の紋章：周囲を爆破</span></div><p class="foot">時間制限なし・ゲームオーバーなし・スマホ対応</p></main><script>
+</style></head><body><main class="app"><h1>✧ きらめきジュエル ✧</h1><p class="sub">好きなだけ、宝石をそろえよう</p><div class="panel"><div class="score">SCORE <span id="score">0</span></div><button class="reset" id="reset">最初から</button></div><label class="word-option"><input id="words" type="checkbox" checked> どうでもいい言葉を表示（自動生成あり）</label><div class="board" id="board" role="grid" aria-label="宝石のゲーム盤"></div><div id="wordpop" class="wordpop" aria-live="polite"></div><p class="status" id="status" aria-live="polite">隣り合う宝石を交換して3つそろえてね</p><div class="legend"><span>矢印の紋章：1列消去</span><span>星の紋章：ランダム1個消去</span><span>太陽の紋章：5個・L字・T字・十字で誕生</span></div><p class="foot">時間制限なし・ゲームオーバーなし・スマホ対応</p></main><script>
 (()=>{
 'use strict';
 const N=8,C=6, boardEl=document.getElementById('board'),scoreEl=document.getElementById('score'),status=document.getElementById('status');
@@ -33,12 +33,17 @@ const names=['ピンク','ミント','紫','黄色','青','緑'];
 let board=[],selected=-1,busy=false,score=0,pointer=null;
 const wordToggle=document.getElementById('words'),wordpop=document.getElementById('wordpop');
 const words=['二度寝！','月見そば！','湿布！','輪ゴム！','押し入れ！','ほうじ茶！','すべり台！','夕刊！','たまご焼き！','鳩時計！','輪切り！','お昼寝！','非常口！','草餅！','毛玉！','洗濯ばさみ！','縁側！','紙袋！','三色団子！','たんぽぽ！','のり弁！','靴べら！','湯たんぽ！','冷やし中華！','みかん箱！','ハンガー！','深呼吸！','回覧板！','さつまいも！','つまようじ！','寝ぐせ！','きつねうどん！','置き時計！','腹巻き！','日なたぼっこ！','麦茶！','長靴！','うたた寝！','味付け海苔！','五目ごはん！'];
-let lastWord=-1;
+const prefixes=['眠たい','豪華な','透明な','四角い','やたら大きい','小さな','まじめな','突然の','深夜の','うっすら光る','ふわふわの','無口な','謎の','早朝の','ひみつの','三代目','ひんやりした','遠くの','おかわり','うっかり'];
+const nouns=['冷蔵庫','焼き芋','輪ゴム','長靴','月見そば','鳩時計','おにぎり','たんぽぽ','こたつ','靴下','洗濯ばさみ','かまぼこ','やかん','紙袋','プリン','座布団','大根','歯ブラシ','まくら','急須','ハンガー','草餅','風鈴','寝ぐせ','お茶漬け','段ボール','あんぱん','湯たんぽ','三角定規','茶柱'];
+let lastWord='';
 function showWord(){
  if(!wordToggle.checked)return;
- let k=Math.floor(Math.random()*words.length);
- if(k===lastWord)k=(k+1)%words.length;
- lastWord=k;wordpop.textContent=words[k];
+ let word='';
+ for(let tries=0;tries<5;tries++){
+  word=Math.random()<.45?words[Math.floor(Math.random()*words.length)]:prefixes[Math.floor(Math.random()*prefixes.length)]+nouns[Math.floor(Math.random()*nouns.length)]+'！';
+  if(word!==lastWord)break;
+ }
+ lastWord=word;wordpop.textContent=word;
  wordpop.classList.remove('show');void wordpop.offsetWidth;wordpop.classList.add('show');
 }
 wordToggle.addEventListener('change',()=>{if(!wordToggle.checked){wordpop.textContent='';wordpop.classList.remove('show')}});
@@ -185,29 +190,32 @@ function expandEffects(initial,protectedCell=-1){
  return removed;
 }
 function specialCreation(result,preferred){
- const out=new Map();
- // Priority: 5 in a line > square of 4 > line of 4.
- const choose=(cells)=>cells.find(i=>preferred.includes(i))??cells[Math.floor(cells.length/2)];
+ // Identify intersections between horizontal and vertical runs. Connected
+ // L, T and + matches (five or more distinct cells) create a bomb.
+ const proposals=[];
+ const horizontal=result.runs.filter(r=>r.dir==='row');
+ const vertical=result.runs.filter(r=>r.dir==='col');
+ const seen=new Set();
+ for(const h of horizontal)for(const v of vertical){
+  const intersection=h.cells.find(i=>v.cells.includes(i));
+  if(intersection===undefined)continue;
+  const cells=[...new Set([...h.cells,...v.cells])];
+  if(cells.length<5)continue;
+  const signature=[...cells].sort((a,b)=>a-b).join(',');
+  if(seen.has(signature))continue;
+  seen.add(signature);
+  proposals.push({cells,type:'bomb',at:preferred.find(i=>cells.includes(i))??intersection,priority:4});
+ }
  for(const run of result.runs.filter(r=>r.cells.length>=4)){
   const type=run.cells.length>=5?'bomb':run.dir;
-  const at=choose(run.cells);
-  const old=out.get(at);
-  if(!old||type==='bomb')out.set(at,type);
+  proposals.push({cells:run.cells,type,priority:type==='bomb'?3:1});
  }
- for(const cells of result.squares){
-  const at=choose(cells);
-  if(out.get(at)!=='bomb')out.set(at,'random');
- }
- // If special patterns overlap, retain the highest-priority one.
- const rank={row:1,col:1,random:2,bomb:3};
- const proposals=[];
- for(const run of result.runs.filter(r=>r.cells.length>=4))proposals.push({cells:run.cells,type:run.cells.length>=5?'bomb':run.dir});
- for(const cells of result.squares)proposals.push({cells,type:'random'});
- proposals.sort((a,b)=>rank[b.type]-rank[a.type]);
+ for(const cells of result.squares)proposals.push({cells,type:'random',priority:2});
+ proposals.sort((a,b)=>b.priority-a.priority||b.cells.length-a.cells.length);
  const reserved=new Set(),placements=new Map();
  for(const p of proposals){
   if(p.cells.some(i=>reserved.has(i)))continue;
-  const at=choose(p.cells);
+  const at=p.at??preferred.find(i=>p.cells.includes(i))??p.cells[Math.floor(p.cells.length/2)];
   placements.set(at,p.type);
   p.cells.forEach(i=>reserved.add(i));
  }
